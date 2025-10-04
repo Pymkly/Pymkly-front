@@ -7,25 +7,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Mail, Lock, User, Bot } from 'lucide-react';
 
 interface AuthPageProps {
-    onLogin: (email: string) => void;
+    onLogin: (email: string, password: string) => void;
+    onRegister: (email: string, password: string, name : string) => void;
 }
 
-export function AuthPage({ onLogin }: AuthPageProps) {
+export function AuthPage({ onLogin, onRegister }: AuthPageProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        if (email) {
-            onLogin(email);
+        if (email && password) {
+            onLogin(email, password);
         }
     };
 
     const handleRegister = (e: React.FormEvent) => {
         e.preventDefault();
-        if (email && name) {
-            onLogin(email);
+        if (email && name && password) {
+            onRegister(email, password, name);
         }
     };
 

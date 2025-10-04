@@ -9,14 +9,8 @@ import {
   Send,
   Bot,
   User,
-  Calendar,
-  Mail,
   CheckSquare,
-  Clock,
-  Plus,
-  FileText,
-  Settings,
-  MessageSquare
+
 } from 'lucide-react';
 
 export interface ChatMessage {
@@ -44,7 +38,6 @@ export function MainChatInterface({
                                     conversationId,
                                     messages,
                                     onSendMessage,
-                                    onActionClick,
                                     userName
                                   }: MainChatInterfaceProps) {
   const [input, setInput] = useState('');
@@ -72,7 +65,7 @@ export function MainChatInterface({
 
   const welcomeMessage = {
     id: 'welcome',
-    content: `Bonjour ${userName} ! Je suis votre assistant IA spécialisé dans la gestion de tâches, la planification et l'organisation d'emails. Comment puis-je vous aider aujourd'hui ?`,
+    content: `Bonjour ! Je suis votre assistant IA spécialisé dans la gestion de tâches, la planification et l'organisation d'emails. Comment puis-je vous aider aujourd'hui ?`,
     isUser: false,
     timestamp: new Date(),
     suggestions: [
@@ -88,24 +81,9 @@ export function MainChatInterface({
   const quickActions = [
     {
       icon: CheckSquare,
-      label: 'Nouvelle tâche',
+      label: 'Nouveau',
       prompt: 'Je veux créer une nouvelle tâche'
     },
-    {
-      icon: Calendar,
-      label: 'Planifier',
-      prompt: 'Je veux planifier un événement'
-    },
-    {
-      icon: Mail,
-      label: 'Email',
-      prompt: 'Je veux composer un email'
-    },
-    {
-      icon: FileText,
-      label: 'Note',
-      prompt: 'Je veux prendre une note'
-    }
   ];
 
   if (!conversationId) {
@@ -193,25 +171,6 @@ export function MainChatInterface({
                                   >
                                     {suggestion}
                                   </Badge>
-                              ))}
-                            </div>
-                        )}
-
-                        {message.actions && (
-                            <div className="flex flex-wrap gap-1 md:gap-2 mt-2 md:mt-3">
-                              {message.actions.map((action, index) => (
-                                  <Button
-                                      key={index}
-                                      size="sm"
-                                      onClick={() => onActionClick(action)}
-                                      className="gap-1 md:gap-2 text-xs md:text-sm"
-                                  >
-                                    {action.type === 'task' && <CheckSquare className="w-3 h-3 md:w-4 md:h-4" />}
-                                    {action.type === 'calendar' && <Calendar className="w-3 h-3 md:w-4 md:h-4" />}
-                                    {action.type === 'email' && <Mail className="w-3 h-3 md:w-4 md:h-4" />}
-                                    {action.type === 'note' && <FileText className="w-3 h-3 md:w-4 md:h-4" />}
-                                    <span className="hidden sm:inline">{action.label}</span>
-                                  </Button>
                               ))}
                             </div>
                         )}

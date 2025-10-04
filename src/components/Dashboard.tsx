@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { Bot, LogOut, Settings, Menu } from 'lucide-react';
 import { ConversationSidebar, type Conversation } from './ConversationSidebar';
 import { MainChatInterface, type ChatMessage } from './MainChatInterface';
+import axios from 'axios';
 
 interface DashboardProps {
   userEmail: string;
@@ -22,186 +23,62 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
       category: 'tasks',
       isActive: false
     },
-    {
-      id: '2',
-      title: 'Organisation réunion équipe',
-      lastMessage: 'Parfait ! J\'ai créé l\'événement dans votre calendrier pour jeudi prochain.',
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      category: 'calendar',
-      isActive: false
-    },
-    {
-      id: '3',
-      title: 'Gestion emails clients',
-      lastMessage: 'Voici un modèle d\'email professionnel pour répondre à vos clients...',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      category: 'email',
-      isActive: false
-    }
   ]);
 
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [conversationMessages, setConversationMessages] = useState<Record<string, ChatMessage[]>>({
     '1': [
-      {
-        id: 'msg1',
-        content: 'Bonjour ! Je souhaite organiser mon projet pour le Q1. Pouvez-vous m\'aider ?',
-        isUser: true,
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
-      },
-      {
-        id: 'msg2',
-        content: 'Bien sûr ! Je vais vous aider à planifier votre projet Q1. Commençons par définir vos objectifs principaux et les tâches prioritaires.',
-        isUser: false,
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000 + 30000),
-        suggestions: [
-          'Créer une liste de tâches prioritaires',
-          'Définir un calendrier de projet',
-          'Organiser les réunions d\'équipe',
-          'Suivre l\'avancement du projet'
-        ]
-      }
+      // {
+      //   id: 'msg1',
+      //   content: 'Bonjour ! Je peux vous aider ?',
+      //   isUser: false,
+      //   timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
+      // },
     ],
-    '2': [
-      {
-        id: 'msg3',
-        content: 'Je dois organiser une réunion d\'équipe pour jeudi prochain à 14h',
-        isUser: true,
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000)
-      },
-      {
-        id: 'msg4',
-        content: 'Parfait ! Je peux vous aider à organiser cette réunion. Voici ce que je propose :',
-        isUser: false,
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000 + 15000),
-        actions: [
-          {
-            type: 'calendar',
-            label: 'Créer l\'événement',
-            data: {
-              title: 'Réunion équipe',
-              date: 'jeudi prochain',
-              time: '14:00'
-            }
-          }
-        ]
-      }
-    ],
-    '3': [
-      {
-        id: 'msg5',
-        content: 'J\'ai besoin d\'aide pour rédiger des emails professionnels à mes clients',
-        isUser: true,
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000)
-      },
-      {
-        id: 'msg6',
-        content: 'Je peux vous aider à rédiger des emails professionnels efficaces. Quel type d\'email souhaitez-vous créer ?',
-        isUser: false,
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000 + 45000),
-        suggestions: [
-          'Email de suivi commercial',
-          'Réponse à une réclamation',
-          'Proposition de rendez-vous',
-          'Email de remerciement'
-        ]
-      }
-    ]
+    // '2': [
+    //   {
+    //     id: 'msg3',
+    //     content: 'Je dois organiser une réunion d\'équipe pour jeudi prochain à 14h',
+    //     isUser: true,
+    //     timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000)
+    //   },
+    // ],
   });
 
   const [isTyping, setIsTyping] = useState(false);
   console.log(isTyping);
-  const generateAIResponse = (userMessage: string): ChatMessage => {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    // Détection d'intention pour les tâches
-    if (lowerMessage.includes('tâche') || lowerMessage.includes('task') || lowerMessage.includes('faire') || lowerMessage.includes('travail')) {
+  const generateAIResponse = async (userMessage: string): Promise<ChatMessage> => {
+
+    try {
+      let text = userMessage;
+      const response = await axios.post(
+          'http://localhost:8000/answer',
+          { text }, // Utilise l'UUID stocké
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json',
+            },
+          }
+      );
+      const { result, thread_id } = response.data;
+      localStorage.setItem('uuid', thread_id);
       return {
         id: Date.now().toString(),
-        content: 'Je peux vous aider à créer et organiser vos tâches. Voici ce que je propose basé sur votre demande :',
+        content: result,
         isUser: false,
         timestamp: new Date(),
-        actions: [{
-          type: 'task',
-          label: 'Créer cette tâche',
-          data: {
-            title: userMessage.includes('urgent') ? 'Tâche urgente' : 'Nouvelle tâche',
-            description: userMessage,
-            priority: userMessage.includes('urgent') ? 'high' : 'medium'
-          }
-        }],
-        suggestions: [
-          'Créer une tâche urgente',
-          'Planifier une tâche pour demain',
-          'Organiser mes priorités',
-          'Créer une checklist'
-        ]
       };
-    }
-    
-    // Détection d'intention pour le calendrier
-    if (lowerMessage.includes('rendez-vous') || lowerMessage.includes('réunion') || lowerMessage.includes('événement') || lowerMessage.includes('planifier')) {
+    } catch (error) {
+      console.error('Erreur answer:', error);
       return {
         id: Date.now().toString(),
-        content: 'Je peux vous aider à planifier cet événement. Voulez-vous que je l\'ajoute à votre calendrier ?',
+        content: (''+error).toString(),
         isUser: false,
         timestamp: new Date(),
-        actions: [{
-          type: 'calendar',
-          label: 'Ajouter au calendrier',
-          data: {
-            title: 'Nouvel événement',
-            description: userMessage
-          }
-        }],
-        suggestions: [
-          'Planifier pour demain',
-          'Créer une réunion récurrente',
-          'Programmer un rappel',
-          'Organiser un événement'
-        ]
       };
+      // alert('Erreur : ' + (error.response?.data?.detail || 'Problème avec la requête'));
     }
-    
-    // Détection d'intention pour les emails
-    if (lowerMessage.includes('email') || lowerMessage.includes('mail') || lowerMessage.includes('envoyer') || lowerMessage.includes('rédiger')) {
-      return {
-        id: Date.now().toString(),
-        content: 'Je peux vous aider à rédiger cet email. Quel type d\'email souhaitez-vous créer ?',
-        isUser: false,
-        timestamp: new Date(),
-        actions: [{
-          type: 'email',
-          label: 'Créer un brouillon',
-          data: {
-            subject: 'Nouvel email',
-            body: userMessage
-          }
-        }],
-        suggestions: [
-          'Email professionnel',
-          'Email de suivi',
-          'Réponse formelle',
-          'Email de remerciement'
-        ]
-      };
-    }
-    
-    // Réponse générale
-    return {
-      id: Date.now().toString(),
-      content: 'Je suis là pour vous aider avec la gestion de vos tâches, la planification de vos événements et la rédaction d\'emails. Que souhaitez-vous faire ?',
-      isUser: false,
-      timestamp: new Date(),
-      suggestions: [
-        'Créer une nouvelle tâche',
-        'Planifier un événement',
-        'Rédiger un email',
-        'Organiser ma journée',
-        'Prendre des notes',
-        'Gérer mes priorités'
-      ]
-    };
   };
 
   const handleSelectConversation = (id: string) => {
@@ -271,25 +148,21 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
 
     // Simuler l'IA qui tape
     setIsTyping(true);
+    const aiResponse = await generateAIResponse(message);
 
-    // Simuler un délai de réponse
-    setTimeout(() => {
-      const aiResponse = generateAIResponse(message);
-      
-      setConversationMessages(prev => ({
-        ...prev,
-        [conversationId]: [...(prev[conversationId] || []), aiResponse]
-            // [conversationId]: [...(prev[conversationId] || []), userMessage, aiResponse]
-      }));
+    setConversationMessages(prev => ({
+      ...prev,
+      [conversationId]: [...(prev[conversationId] || []), aiResponse]
+          // [conversationId]: [...(prev[conversationId] || []), userMessage, aiResponse]
+    }));
 
-      setConversations(prev => prev.map(conv => 
-        conv.id === conversationId 
-          ? { ...conv, lastMessage: aiResponse.content }
-          : conv
-      ));
+    setConversations(prev => prev.map(conv =>
+      conv.id === conversationId
+        ? { ...conv, lastMessage: aiResponse.content }
+        : conv
+    ));
 
-      setIsTyping(false);
-    }, 1000 + Math.random() * 2000);
+    setIsTyping(false);
   };
 
   const handleActionClick = (action: any) => {
