@@ -263,11 +263,11 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
     }));
 
     // Mettre à jour la conversation
-    setConversations(prev => prev.map(conv => 
-      conv.id === conversationId 
-        ? { ...conv, lastMessage: message, timestamp: new Date() }
-        : conv
-    ));
+    // setConversations(prev => prev.map(conv =>
+    //   conv.id === conversationId
+    //     ? { ...conv, lastMessage: message, timestamp: new Date() }
+    //     : conv
+    // ));
 
     // Simuler l'IA qui tape
     setIsTyping(true);
@@ -278,7 +278,8 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
       
       setConversationMessages(prev => ({
         ...prev,
-        [conversationId]: [...(prev[conversationId] || []), userMessage, aiResponse]
+        [conversationId]: [...(prev[conversationId] || []), aiResponse]
+            // [conversationId]: [...(prev[conversationId] || []), userMessage, aiResponse]
       }));
 
       setConversations(prev => prev.map(conv => 
