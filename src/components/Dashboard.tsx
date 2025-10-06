@@ -14,7 +14,6 @@ interface DashboardProps {
 }
 
 export function Dashboard({ userEmail, onLogout }: DashboardProps) {
-  const FRONTEND_URL = config["FRONTEND_URL"];
   const apiUrl = config["apiUrl"];
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([
@@ -23,7 +22,7 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
       title: 'Planification projet Q1',
       lastMessage: 'Je vais vous aider à organiser votre projet pour le premier trimestre...',
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      category: 'note',
+      category: 'general',
       isActive: false
     },
   ]);

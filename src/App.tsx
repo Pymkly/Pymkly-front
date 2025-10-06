@@ -20,7 +20,7 @@ export default function App() {
             }, {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             });
-            const { access_token, message, next_step } = response.data;
+            const { access_token, next_step } = response.data;
             // Stocker le token
             localStorage.setItem('token', access_token);
             localStorage.setItem('user_email', email);
@@ -49,7 +49,7 @@ export default function App() {
                 email: email,
                 mot_de_passe: password,
             });
-            const { access_token, message, next_step} = response.data;
+            const { access_token, next_step} = response.data;
             // Stocker le token
             localStorage.setItem('token', access_token);
             localStorage.setItem('user_email', email);
