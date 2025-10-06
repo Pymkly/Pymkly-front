@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react';
 import { AuthPage } from './components/AuthPage';
 import { Dashboard } from './components/Dashboard';
 import axios from 'axios';
+import {config} from "./config/config.ts";
 
 export default function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userEmail, setUserEmail] = useState('');
-    const FRONTEND_URL = "http://localhost:5173";
+    const FRONTEND_URL = config["FRONTEND_URL"];
+    const apiUrl = config["apiUrl"];
     const handleLogin = async (email: string, password: string) => {
         setUserEmail(email);
         console.log(email, password);
 
         try {
-            const response = await axios.post('http://localhost:8000/login', {
+            const response = await axios.post(`${apiUrl}/login`, {
                 username: email,
                 password: password,
             }, {
@@ -27,7 +29,7 @@ export default function App() {
             // Gérer le consentement Google si proposé
             if (next_step) {
                 // if (window.confirm("Voulez-vous lier votre Google Calendar maintenant ?")) {
-                    window.location.href = "http://localhost:8000"+next_step;
+                    window.location.href = `${apiUrl}${next_step}`;
                 // }
             }
         } catch (error) {
@@ -42,7 +44,7 @@ export default function App() {
         console.log(email, password, name);
 
         try {
-            const response = await axios.post('http://localhost:8000/register', {
+            const response = await axios.post(`${apiUrl}/register`, {
                 nom_complet: name,
                 email: email,
                 mot_de_passe: password,
@@ -56,7 +58,7 @@ export default function App() {
             // Gérer le consentement Google si proposé
             if (next_step) {
                 // if (window.confirm("Voulez-vous lier votre Google Calendar maintenant ?")) {
-                    window.location.href = "http://localhost:8000"+next_step;
+                    window.location.href = `${apiUrl}${next_step}`;
                 // }
             }
         } catch (error) {

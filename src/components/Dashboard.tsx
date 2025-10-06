@@ -6,6 +6,7 @@ import { Bot, LogOut, Settings, Menu } from 'lucide-react';
 import { ConversationSidebar, type Conversation } from './ConversationSidebar';
 import { MainChatInterface, type ChatMessage } from './MainChatInterface';
 import axios from 'axios';
+import {config} from "../config/config.ts";
 
 interface DashboardProps {
   userEmail: string;
@@ -13,6 +14,8 @@ interface DashboardProps {
 }
 
 export function Dashboard({ userEmail, onLogout }: DashboardProps) {
+  const FRONTEND_URL = config["FRONTEND_URL"];
+  const apiUrl = config["apiUrl"];
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([
     {
@@ -35,7 +38,7 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
   const loadConversation = async () => {
     try {
       const response = await axios.get(
-          "http://localhost:8000/threads",
+          `${apiUrl}/threads`,
           {
             headers : {
               'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -54,7 +57,7 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
     try {
       let text = userMessage;
       const response = await axios.post(
-          'http://localhost:8000/answer',
+          `${apiUrl}/answer`,
           { text, "thread_id": conversationId }, // Utilise l'UUID stocké
           {
             headers: {
@@ -96,7 +99,7 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
   const loadOneConversation = async (id:string) => {
     try {
       const response = await axios.get(
-          `http://localhost:8000/discussions?thread_id=${id}`,
+          `${apiUrl}/discussions?thread_id=${id}`,
           {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -121,7 +124,7 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
 
     try {
       const response = await axios.post(
-          `http://localhost:8000/threads`,
+          `${apiUrl}/threads`,
           {
             "label" : title
           },
