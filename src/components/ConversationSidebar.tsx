@@ -242,7 +242,7 @@ export function ConversationSidebar({
                         {getCategoryBadge(conversation.category)}
                       </Badge>
                       <span className="text-xs text-muted-foreground hidden sm:inline">
-                        {conversation.timestamp.toLocaleDateString()}
+                        {conversation.timestamp && conversation.timestamp.toLocaleDateString()}
                       </span>
                     </div>
                   </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
@@ -20,40 +20,42 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
       title: 'Planification projet Q1',
       lastMessage: 'Je vais vous aider à organiser votre projet pour le premier trimestre...',
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      category: 'tasks',
+      category: 'note',
       isActive: false
     },
   ]);
 
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [conversationMessages, setConversationMessages] = useState<Record<string, ChatMessage[]>>({
-    '1': [
-      // {
-      //   id: 'msg1',
-      //   content: 'Bonjour ! Je peux vous aider ?',
-      //   isUser: false,
-      //   timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
-      // },
-    ],
-    // '2': [
-    //   {
-    //     id: 'msg3',
-    //     content: 'Je dois organiser une réunion d\'équipe pour jeudi prochain à 14h',
-    //     isUser: true,
-    //     timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000)
-    //   },
-    // ],
   });
 
   const [isTyping, setIsTyping] = useState(false);
   console.log(isTyping);
-  const generateAIResponse = async (userMessage: string): Promise<ChatMessage> => {
+
+  const loadConversation = async () => {
+    try {
+      const response = await axios.get(
+          "http://localhost:8000/threads",
+          {
+            headers : {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json',
+            }
+          }
+      );
+      const { threads } = response.data;
+      setConversations(threads);
+    } catch (error) {
+      console.error('Erreur answer:', error);
+    }
+  }
+  const generateAIResponse = async (userMessage: string, conversationId: string): Promise<ChatMessage> => {
 
     try {
       let text = userMessage;
       const response = await axios.post(
           'http://localhost:8000/answer',
-          { text }, // Utilise l'UUID stocké
+          { text, "thread_id": conversationId }, // Utilise l'UUID stocké
           {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -81,29 +83,75 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
     }
   };
 
-  const handleSelectConversation = (id: string) => {
+  const handleSelectConversation = async (id: string) => {
+
     setConversations(prev => prev.map(conv => ({
       ...conv,
       isActive: conv.id === id
     })));
     setActiveConversationId(id);
+    await loadOneConversation(id);
   };
 
-  const handleCreateConversation = (title: string, category: Conversation['category']) => {
-    const newConversation: Conversation = {
-      id: Date.now().toString(),
-      title,
-      lastMessage: 'Conversation créée',
-      timestamp: new Date(),
-      category,
-      isActive: false
-    };
+  const loadOneConversation = async (id:string) => {
+    try {
+      const response = await axios.get(
+          `http://localhost:8000/discussions?thread_id=${id}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json',
+            },
+          }
+      );
+      const { messages } = response.data;
+      setConversationMessages(prev => ({
+        ...prev,
+        [id]: messages
+      }));
+      console.log(messages);
+    } catch (error) {
+      console.error('Erreur answer:', error);
+      // alert('Erreur : ' + (error.response?.data?.detail || 'Problème avec la requête'));
+    }
+  }
+
+  const handleCreateConversation = async (title: string, category: Conversation['category']) => {
+
+
+    try {
+      const response = await axios.post(
+          `http://localhost:8000/threads`,
+          {
+            "label" : title
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json',
+            },
+          }
+      );
+      const { id } = response.data;
+      const newConversation: Conversation = {
+        id: id,
+        title,
+        lastMessage: 'Conversation créée',
+        timestamp: new Date(),
+        category,
+        isActive: false
+      };
+      setConversations(prev => [newConversation, ...prev]);
+      setConversationMessages(prev => ({
+        ...prev,
+        [newConversation.id]: []
+      }));
+    } catch (error) {
+      console.error('Erreur answer:', error);
+      // alert('Erreur : ' + (error.response?.data?.detail || 'Problème avec la requête'));
+    }
     
-    setConversations(prev => [newConversation, ...prev]);
-    setConversationMessages(prev => ({
-      ...prev,
-      [newConversation.id]: []
-    }));
+
   };
 
   const handleDeleteConversation = (id: string) => {
@@ -148,7 +196,7 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
 
     // Simuler l'IA qui tape
     setIsTyping(true);
-    const aiResponse = await generateAIResponse(message);
+    const aiResponse = await generateAIResponse(message, conversationId);
 
     setConversationMessages(prev => ({
       ...prev,
@@ -197,6 +245,9 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
 
   const userName = userEmail.split('@')[0];
 
+  useEffect(() => {
+    loadConversation();
+  }, []);
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}

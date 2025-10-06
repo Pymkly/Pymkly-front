@@ -176,7 +176,7 @@ export function MainChatInterface({
                         )}
 
                         <p className="text-xs text-muted-foreground mt-1 md:mt-2">
-                          {message.timestamp.toLocaleTimeString()}
+                          {message.timestamp && message.timestamp.toLocaleTimeString()}
                         </p>
                       </div>
 
