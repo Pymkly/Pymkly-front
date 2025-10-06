@@ -1,4 +1,4 @@
 export const configProd = {
-    apiUrl: "http://vps-156d6086.vps.ovh.net:8000",
-    FRONTEND_URL : "http://vps-156d6086.vps.ovh.net:5173",
+    apiUrl: "http://www.mamorona-ny.tsisy.com",
+    FRONTEND_URL : "http://www.tsisy.com",
 }
