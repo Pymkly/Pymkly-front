@@ -175,7 +175,7 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
     ));
   };
 
-  const handleSendMessage = async (message: string, conversationId: string) => {
+  const handleSendMessage = async (message: string, conversationId: string, next : () => void) => {
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       content: message,
@@ -189,6 +189,15 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
       [conversationId]: [...(prev[conversationId] || []), userMessage]
     }));
 
+    const placeholderId = `placeholder-${Date.now()}`;
+    setConversationMessages(prev => ({
+      ...prev,
+      [conversationId]: [
+        ...(prev[conversationId] || []),
+        { id: placeholderId, content: '', isUser: false, timestamp: new Date(), isPlaceholder: true },
+      ],
+    }));
+
     // Mettre à jour la conversation
     // setConversations(prev => prev.map(conv =>
     //   conv.id === conversationId
@@ -198,21 +207,37 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
 
     // Simuler l'IA qui tape
     setIsTyping(true);
-    const aiResponse = await generateAIResponse(message, conversationId);
+    try {
+      const aiResponse = await generateAIResponse(message, conversationId);
 
-    setConversationMessages(prev => ({
-      ...prev,
-      [conversationId]: [...(prev[conversationId] || []), aiResponse]
-          // [conversationId]: [...(prev[conversationId] || []), userMessage, aiResponse]
-    }));
+      // setConversationMessages(prev => ({
+      //   ...prev,
+      //   [conversationId]: [...(prev[conversationId] || []), aiResponse]
+      //   // [conversationId]: [...(prev[conversationId] || []), userMessage, aiResponse]
+      // }));
 
-    setConversations(prev => prev.map(conv =>
-      conv.id === conversationId
-        ? { ...conv, lastMessage: aiResponse.content }
-        : conv
-    ));
+      setConversationMessages(prev => ({
+        ...prev,
+        [conversationId]: prev[conversationId].map(msg =>
+            msg.id === placeholderId ? aiResponse : msg,
+        ),
+      }));
 
-    setIsTyping(false);
+      setIsTyping(false);
+      next();
+    } catch (error) {
+      // Gérer l'erreur si besoin
+      setConversationMessages(prev => ({
+        ...prev,
+        [conversationId]: prev[conversationId].map(msg =>
+            msg.id === placeholderId ? { ...msg, content: 'Erreur lors de la réponse.', isPlaceholder: false } : msg,
+        ),
+      }));
+    } finally {
+      setIsTyping(false); // Si tu réutilises isTyping, sinon retire
+      next();
+    }
+
   };
 
   const handleActionClick = (action: any) => {

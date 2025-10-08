@@ -32,7 +32,7 @@ export interface ChatMessage {
 interface MainChatInterfaceProps {
   conversationId: string | null;
   messages: ChatMessage[];
-  onSendMessage: (message: string, conversationId: string) => void;
+  onSendMessage: (message: string, conversationId: string, next: () => void) => void;
   onActionClick: (action: any) => void;
   userName: string;
 }
@@ -43,7 +43,7 @@ export function MainChatInterface({
                                     onSendMessage
                                   }: MainChatInterfaceProps) {
   const [input, setInput] = useState('');
-  const [isTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -52,12 +52,16 @@ export function MainChatInterface({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isTyping]);
+  }, [messages, isLoading]);
 
   const handleSend = () => {
     if (!input.trim() || !conversationId) return;
 
-    onSendMessage(input.trim(), conversationId);
+    setIsLoading(true);
+    onSendMessage(input.trim(), conversationId, ()=> {
+      setIsLoading(false)
+
+    });
     setInput('');
   };
 
@@ -127,7 +131,7 @@ export function MainChatInterface({
             <div>
               <h3 className="text-sm md:text-base">Assistant IA TaskMaster</h3>
               <p className="text-xs md:text-sm text-muted-foreground">
-                {isTyping ? 'En train d\'écrire...' : 'En ligne • Spécialisé en productivité'}
+                {isLoading ? 'En train de répondre...' : 'En ligne • Spécialisé en productivité'}
               </p>
             </div>
           </div>
@@ -138,7 +142,7 @@ export function MainChatInterface({
           <ScrollArea className="h-full">
             <div className="p-3 md:p-4">
               <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto">
-                {displayMessages.map((message) => (
+                {displayMessages.map((message, index) => (
                     <div
                         key={message.id}
                         className={`flex gap-2 md:gap-4 ${message.isUser ? 'justify-end' : 'justify-start'}`}
@@ -160,20 +164,34 @@ export function MainChatInterface({
                             }`}
                         >
                           {/*<p className="whitespace-pre-wrap text-sm md:text-base">{message.content}</p>*/}
-                          {/*<ReactMarkdown*/}
-                          {/*    rehypePlugins={[rehypeRaw]} // Permet d’interpréter le Markdown*/}
-                          {/*    components={{*/}
-                          {/*      p: ({ children }) => <p css={markdownStyle}>{children}</p>, // Applique le style*/}
-                          {/*      // Optionnel : Personnalise autres éléments (ul, li, etc.)*/}
-                          {/*    }}*/}
-                          {/*>*/}
-                          {/*  {message.content}*/}
-                          {/*</ReactMarkdown>*/}
-                          <ReactMarkdown
-                              components={{
-                                p: ({ children }) => <p className="text-sm md:text-base mb-0">{children}</p>,
-                              }}
-                              rehypePlugins={[rehypeRaw, rehypeStringify]}>{message.content}</ReactMarkdown>
+                          {isLoading && index === displayMessages.length - 1 && !message.isUser ? (
+                              // <div className="flex items-center space-x-1">
+                              //   <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                              //   <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                              //        style={{animationDelay: '0.2s'}}></div>
+                              //   <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                              //        style={{animationDelay: '0.4s'}}></div>
+                              //   <span className="ml-2 text-sm md:text-base text-gray-500  animate-pulse">Chargement...</span>
+                              // </div>
+                              <div className="flex items-center space-x-1">
+                                <Bot className="w-5 h-5 md:w-6 md:h-6 text-primary animate-pulse" />
+                                <div className="w-2 h-2 bg-gray-500 rounded-full animate-high-bounce"></div>
+                                <div className="w-2 h-2 bg-gray-500 rounded-full animate-high-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                <div className="w-2 h-2 bg-gray-500 rounded-full animate-high-bounce" style={{ animationDelay: '0.4s' }}></div>
+                                <span className="ml-2 text-sm md:text-base text-gray-500">Chargement...</span>
+                              </div>
+                          ) : (
+                              <ReactMarkdown
+                                  components={{
+                                    p: ({children}) => (
+                                        <p className="text-sm md:text-base mb-0">{children}</p>
+                                    ),
+                                  }}
+                                  rehypePlugins={[rehypeRaw, rehypeStringify]}
+                              >
+                                {message.content}
+                              </ReactMarkdown>
+                          )}
                         </div>
 
                         {message.suggestions && (
@@ -206,22 +224,22 @@ export function MainChatInterface({
                     </div>
                 ))}
 
-                {isTyping && (
-                    <div className="flex gap-2 md:gap-4">
-                      <Avatar className="w-7 h-7 md:w-8 md:h-8">
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          <Bot className="w-3 h-3 md:w-4 md:h-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="bg-muted rounded-lg p-3 md:p-4">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        </div>
-                      </div>
-                    </div>
-                )}
+                {/*{isTyping && (*/}
+                {/*    <div className="flex gap-2 md:gap-4">*/}
+                {/*      <Avatar className="w-7 h-7 md:w-8 md:h-8">*/}
+                {/*        <AvatarFallback className="bg-primary text-primary-foreground">*/}
+                {/*          <Bot className="w-3 h-3 md:w-4 md:h-4" />*/}
+                {/*        </AvatarFallback>*/}
+                {/*      </Avatar>*/}
+                {/*      <div className="bg-muted rounded-lg p-3 md:p-4">*/}
+                {/*        <div className="flex space-x-1">*/}
+                {/*          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>*/}
+                {/*          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>*/}
+                {/*          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>*/}
+                {/*        </div>*/}
+                {/*      </div>*/}
+                {/*    </div>*/}
+                {/*)}*/}
 
                 {/* Invisible element to scroll to */}
                 <div ref={messagesEndRef} />
