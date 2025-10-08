@@ -1,4 +1,4 @@
 export const configProd = {
-    apiUrl: "http://www.mamorona-ny.tsisy.com",
-    FRONTEND_URL : "http://www.tsisy.com",
+    apiUrl: "https://mamorona-ny.tsisy.com",
+    FRONTEND_URL : "https://www.tsisy.com",
 }
