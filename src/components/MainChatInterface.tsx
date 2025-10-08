@@ -5,6 +5,9 @@ import { ScrollArea } from './ui/scroll-area';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { Card, CardContent } from './ui/card';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import rehypeStringify from 'rehype-stringify';
 import {
   Send,
   Bot,
@@ -156,7 +159,21 @@ export function MainChatInterface({
                                     : 'bg-muted'
                             }`}
                         >
-                          <p className="whitespace-pre-wrap text-sm md:text-base">{message.content}</p>
+                          {/*<p className="whitespace-pre-wrap text-sm md:text-base">{message.content}</p>*/}
+                          {/*<ReactMarkdown*/}
+                          {/*    rehypePlugins={[rehypeRaw]} // Permet d’interpréter le Markdown*/}
+                          {/*    components={{*/}
+                          {/*      p: ({ children }) => <p css={markdownStyle}>{children}</p>, // Applique le style*/}
+                          {/*      // Optionnel : Personnalise autres éléments (ul, li, etc.)*/}
+                          {/*    }}*/}
+                          {/*>*/}
+                          {/*  {message.content}*/}
+                          {/*</ReactMarkdown>*/}
+                          <ReactMarkdown
+                              components={{
+                                p: ({ children }) => <p className="text-sm md:text-base mb-0">{children}</p>,
+                              }}
+                              rehypePlugins={[rehypeRaw, rehypeStringify]}>{message.content}</ReactMarkdown>
                         </div>
 
                         {message.suggestions && (
