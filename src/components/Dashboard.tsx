@@ -175,7 +175,7 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
     ));
   };
 
-  const handleSendMessage = async (message: string, conversationId: string, next : () => void) => {
+  const handleSendMessage = async (message: string, conversationId: string, placeholderId: string, next : () => void) => {
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       content: message,
@@ -188,8 +188,6 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
       ...prev,
       [conversationId]: [...(prev[conversationId] || []), userMessage]
     }));
-
-    const placeholderId = `placeholder-${Date.now()}`;
     setConversationMessages(prev => ({
       ...prev,
       [conversationId]: [
@@ -222,8 +220,8 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
             msg.id === placeholderId ? aiResponse : msg,
         ),
       }));
-
-      setIsTyping(false);
+      console.log("Conversation message");
+      console.log(conversationMessages);
       next();
     } catch (error) {
       // Gérer l'erreur si besoin
@@ -234,8 +232,6 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
         ),
       }));
     } finally {
-      setIsTyping(false); // Si tu réutilises isTyping, sinon retire
-      next();
     }
 
   };

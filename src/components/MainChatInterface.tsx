@@ -32,7 +32,7 @@ export interface ChatMessage {
 interface MainChatInterfaceProps {
   conversationId: string | null;
   messages: ChatMessage[];
-  onSendMessage: (message: string, conversationId: string, next: () => void) => void;
+  onSendMessage: (message: string, conversationId: string, placeholderId: string, next: () => void) => void;
   onActionClick: (action: any) => void;
   userName: string;
 }
@@ -44,7 +44,11 @@ export function MainChatInterface({
                                   }: MainChatInterfaceProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [startWrite, setStartWrite] = useState(false);
+  const [currentTypingId, setCurrentTypingId] = useState<string | null>(null); // ID du message en cours d'écriture
+  const [displayedContent, setDisplayedContent] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingInterval = useRef<number | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -54,19 +58,58 @@ export function MainChatInterface({
     scrollToBottom();
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    if (!isLoading && startWrite) {
+      const lastMessage = messages[messages.length - 1];
+      setCurrentTypingId(lastMessage.id);
+      if (lastMessage && !lastMessage.isUser && lastMessage.content) {
+        const words = lastMessage.content.split(' ');
+        let wordIndex = 0;
+        if (typingInterval.current !== null) clearInterval(typingInterval.current);
+        typingInterval.current = setInterval(() => {
+          setDisplayedContent(words.slice(0, wordIndex + 1).join(' ') + (wordIndex < words.length - 1 ? ' ' : ''));
+          wordIndex++;
+          if (wordIndex >= words.length) {
+            clearInterval(typingInterval.current!);
+            setDisplayedContent('');
+            setCurrentTypingId(null);
+            setStartWrite(false);
+          }
+          scrollToBottom();
+        }, 50); // Délai entre chaque mot (300ms, ajustable)
+      }
+    }
+    return () => {
+      if (typingInterval.current) clearInterval(typingInterval.current);
+    };
+  }, [isLoading, messages]);
+
   const handleSend = () => {
     if (!input.trim() || !conversationId) return;
 
     setIsLoading(true);
-    onSendMessage(input.trim(), conversationId, ()=> {
-      setIsLoading(false)
 
+    const placeholderId = `placeholder-${Date.now()}`;
+    onSendMessage(input.trim(), conversationId, placeholderId, ()=> {
+      console.log("tonga eto am next")
+      console.log(placeholderId);
+      setIsLoading(false);
+      setStartWrite(true);
+      // const lastMessage = messages[messages.length - 1];
+      // setCurrentTypingId(lastMessage.id);
     });
     setInput('');
   };
 
   const handleSuggestionClick = (suggestion: string) => {
     setInput(suggestion);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   const welcomeMessage = {
@@ -174,11 +217,10 @@ export function MainChatInterface({
                               //   <span className="ml-2 text-sm md:text-base text-gray-500  animate-pulse">Chargement...</span>
                               // </div>
                               <div className="flex items-center space-x-1">
-                                <Bot className="w-5 h-5 md:w-6 md:h-6 text-primary animate-pulse" />
                                 <div className="w-2 h-2 bg-gray-500 rounded-full animate-high-bounce"></div>
                                 <div className="w-2 h-2 bg-gray-500 rounded-full animate-high-bounce" style={{ animationDelay: '0.2s' }}></div>
                                 <div className="w-2 h-2 bg-gray-500 rounded-full animate-high-bounce" style={{ animationDelay: '0.4s' }}></div>
-                                <span className="ml-2 text-sm md:text-base text-gray-500">Chargement...</span>
+                                {/*<span className="ml-2 text-sm md:text-base text-gray-500">Chargement...</span>*/}
                               </div>
                           ) : (
                               <ReactMarkdown
@@ -189,7 +231,8 @@ export function MainChatInterface({
                                   }}
                                   rehypePlugins={[rehypeRaw, rehypeStringify]}
                               >
-                                {message.content}
+                                {message.id === currentTypingId ? displayedContent : message.content}
+                                {/*{`${message.id === currentTypingId}` }*/}
                               </ReactMarkdown>
                           )}
                         </div>
@@ -273,7 +316,7 @@ export function MainChatInterface({
                   placeholder="Demandez-moi de créer une tâche, planifier un événement..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                  onKeyDown={handleKeyDown}
                   className="flex-1 text-sm md:text-base"
               />
               <Button onClick={handleSend} size="icon" disabled={!input.trim()}>
