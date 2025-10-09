@@ -106,7 +106,7 @@ export function MainChatInterface({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !isLoading && !startWrite) {
       e.preventDefault();
       handleSend();
     }
@@ -319,7 +319,7 @@ export function MainChatInterface({
                   onKeyDown={handleKeyDown}
                   className="flex-1 text-sm md:text-base"
               />
-              <Button onClick={handleSend} size="icon" disabled={!input.trim()}>
+              <Button onClick={handleSend} size="icon" disabled={!input.trim() || isLoading || startWrite}>
                 <Send className="w-4 h-4" />
               </Button>
             </div>
