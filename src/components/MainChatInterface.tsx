@@ -312,12 +312,12 @@ export function MainChatInterface({
 
             {/* Message Input */}
             <div className="flex gap-2">
-              <Input
+              <textarea
                   placeholder="Demandez-moi de créer une tâche, planifier un événement..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="flex-1 text-sm md:text-base"
+                  className="flex-1 text-sm md:text-base p-3 md:p-4 rounded-lg"
               />
               <Button onClick={handleSend} size="icon" disabled={!input.trim() || isLoading || startWrite}>
                 <Send className="w-4 h-4" />
