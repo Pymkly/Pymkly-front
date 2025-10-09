@@ -148,6 +148,7 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
         ...prev,
         [newConversation.id]: []
       }));
+      await handleSelectConversation(id);
     } catch (error) {
       console.error('Erreur answer:', error);
       // alert('Erreur : ' + (error.response?.data?.detail || 'Problème avec la requête'));
