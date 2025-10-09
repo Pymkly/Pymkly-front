@@ -55,9 +55,11 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
 
     try {
       let text = userMessage;
+      const clientTime = new Date().toISOString(); // Ex: "2025-10-09T11:45:00.000Z"
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; // Ex: "Africa/Nairobi"
       const response = await axios.post(
           `${apiUrl}/answer`,
-          { text, "thread_id": conversationId }, // Utilise l'UUID stocké
+          { text, "thread_id": conversationId, clientTime, timeZone }, // Utilise l'UUID stocké
           {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`,
