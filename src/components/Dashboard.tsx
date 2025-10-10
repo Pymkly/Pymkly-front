@@ -67,11 +67,12 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
             },
           }
       );
-      const { result, thread_id } = response.data;
+      const { result, thread_id, suggestions } = response.data;
       localStorage.setItem('uuid', thread_id);
       return {
         id: Date.now().toString(),
         content: result,
+        suggestions : suggestions,
         isUser: false,
         timestamp: new Date(),
       };
@@ -210,7 +211,7 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
     setIsTyping(true);
     try {
       const aiResponse = await generateAIResponse(message, conversationId);
-
+      console.log("ai response ", aiResponse);
       // setConversationMessages(prev => ({
       //   ...prev,
       //   [conversationId]: [...(prev[conversationId] || []), aiResponse]
