@@ -181,7 +181,7 @@ export function ConversationSidebar({
       </div>
 
       {/* Conversation List */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="h-[400px] flex-1">
         <div className="p-2 space-y-2">
           {filteredConversations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
