@@ -4,17 +4,19 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Mail, Lock, User, Bot } from 'lucide-react';
+import { Mail, Lock, User, Bot, Eye, EyeOff } from 'lucide-react';
 
 interface AuthPageProps {
     onLogin: (email: string, password: string) => void;
-    onRegister: (email: string, password: string, name : string) => void;
+    onRegister: (email: string, password: string, name: string) => void;
 }
 
 export function AuthPage({ onLogin, onRegister }: AuthPageProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [showLoginPassword, setShowLoginPassword] = useState(false); // Pour login
+    const [showRegisterPassword, setShowRegisterPassword] = useState(false); // Pour register
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,13 +81,26 @@ export function AuthPage({ onLogin, onRegister }: AuthPageProps) {
                                             <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                             <Input
                                                 id="login-password"
-                                                type="password"
+                                                type={showLoginPassword ? 'text' : 'password'} // Toggle visibility
                                                 placeholder="••••••••"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
-                                                className="pl-9"
+                                                className="pl-9 pr-10"
                                                 required
                                             />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute right-2 top-2 h-7 w-7"
+                                                onClick={() => setShowLoginPassword(!showLoginPassword)}
+                                            >
+                                                {showLoginPassword ? (
+                                                    <EyeOff className="h-4 w-4" />
+                                                ) : (
+                                                    <Eye className="h-4 w-4" />
+                                                )}
+                                            </Button>
                                         </div>
                                     </div>
 
@@ -135,13 +150,26 @@ export function AuthPage({ onLogin, onRegister }: AuthPageProps) {
                                             <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                             <Input
                                                 id="register-password"
-                                                type="password"
+                                                type={showRegisterPassword ? 'text' : 'password'} // Toggle visibility
                                                 placeholder="••••••••"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
-                                                className="pl-9"
+                                                className="pl-9 pr-10"
                                                 required
                                             />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute right-2 top-2 h-7 w-7"
+                                                onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                                            >
+                                                {showRegisterPassword ? (
+                                                    <EyeOff className="h-4 w-4" />
+                                                ) : (
+                                                    <Eye className="h-4 w-4" />
+                                                )}
+                                            </Button>
                                         </div>
                                     </div>
 
