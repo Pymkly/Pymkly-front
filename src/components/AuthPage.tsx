@@ -5,6 +5,8 @@ import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Mail, Lock, User, Bot, Eye, EyeOff } from 'lucide-react';
+import axios from "axios";
+import {config} from "../config/config.ts";
 
 interface AuthPageProps {
     onLogin: (email: string, password: string) => void;
@@ -18,7 +20,23 @@ export function AuthPage({ onLogin, onRegister, isInvalidToken }: AuthPageProps)
     const [name, setName] = useState('');
     const [showLoginPassword, setShowLoginPassword] = useState(false); // Pour login
     const [showRegisterPassword, setShowRegisterPassword] = useState(false); // Pour register
-
+    const [message, setMessage] = useState('');
+    const apiUrl = config["apiUrl"];
+    const handleForgotPassword = (email : string) => {
+        if (!email) {
+            setMessage('Veuillez entrer un email.');
+            return;
+        }
+        try {
+            axios.get(`${apiUrl}/forgot-password?email=${email}`).then((response) => {
+                console.log(response);
+                setMessage('Verifiez votre mail.');
+            });
+        } catch (error) {
+            // @ts-ignore
+            setMessage('Erreur : ' + (error.response?.data.detail || 'Problème d’envoi'));
+        }
+    };
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         if (email && password) {
@@ -63,7 +81,7 @@ export function AuthPage({ onLogin, onRegister, isInvalidToken }: AuthPageProps)
                                     <div className="space-y-2">
                                         <Label htmlFor="login-email">Email</Label>
                                         <div className="relative">
-                                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground"/>
                                             <Input
                                                 id="login-email"
                                                 type="email"
@@ -79,7 +97,7 @@ export function AuthPage({ onLogin, onRegister, isInvalidToken }: AuthPageProps)
                                     <div className="space-y-2">
                                         <Label htmlFor="login-password">Mot de passe</Label>
                                         <div className="relative">
-                                            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground"/>
                                             <Input
                                                 id="login-password"
                                                 type={showLoginPassword ? 'text' : 'password'} // Toggle visibility
@@ -97,17 +115,32 @@ export function AuthPage({ onLogin, onRegister, isInvalidToken }: AuthPageProps)
                                                 onClick={() => setShowLoginPassword(!showLoginPassword)}
                                             >
                                                 {showLoginPassword ? (
-                                                    <EyeOff className="h-4 w-4" />
+                                                    <EyeOff className="h-4 w-4"/>
                                                 ) : (
-                                                    <Eye className="h-4 w-4" />
+                                                    <Eye className="h-4 w-4"/>
                                                 )}
                                             </Button>
                                         </div>
                                     </div>
-                                    {(isInvalidToken?<p className={"text-red-500"}>Token invalide pour changer de mot de passe</p> : <></> )}
+                                    {(isInvalidToken ?
+                                        <p className={"text-red-500"}>Token invalide pour changer de mot de
+                                            passe</p> : <></>)}
                                     <Button type="submit" className="w-full">
                                         Se connecter
                                     </Button>
+                                    <p className={"text-green-500"}>{message}</p>
+                                    <div className="text-center text-sm text-muted-foreground mt-2">
+                                        <a
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                handleForgotPassword(email); // Passe l'email saisi
+                                            }}
+                                            className="underline"
+                                        >
+                                            Mot de passe oublié ?
+                                        </a>
+                                    </div>
                                 </form>
                             </TabsContent>
 
