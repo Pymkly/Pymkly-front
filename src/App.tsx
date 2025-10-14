@@ -3,10 +3,14 @@ import { AuthPage } from './components/AuthPage';
 import { Dashboard } from './components/Dashboard';
 import axios from 'axios';
 import {config} from "./config/config.ts";
+import {ChangePassword} from "./components/ChangePassword.tsx";
 
 export default function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isChangePassword, setIsChangePassword] = useState(false);
+    const [isInvalidChangePassword, setIsInvalidChangePassword] = useState(false);
     const [userEmail, setUserEmail] = useState('');
+    const [token, setToken] = useState('');
     const FRONTEND_URL = config["FRONTEND_URL"];
     const apiUrl = config["apiUrl"];
     const handleLogin = async (email: string, password: string) => {
@@ -68,7 +72,26 @@ export default function App() {
         }
     };
 
-
+    const handleChangePassword = async (password : string) => {
+        try {
+            const response = await axios.post(`${apiUrl}/change-password`, {
+                token: token,
+                mot_de_passe: password,
+            });
+            const { access_token, email} = response.data;
+            // Stocker le token
+            localStorage.setItem('token', access_token);
+            localStorage.setItem('user_email', email);
+            setUserEmail(email);
+            setIsAuthenticated(true);
+            window.history.replaceState({}, document.title, FRONTEND_URL);
+            setIsChangePassword(false);
+        } catch (error) {
+            console.error('Erreur changement mot de passe:', error);
+            // @ts-ignore
+            alert('Erreur durant le changement de mot de passe : ' + (error.response?.data?.detail || 'Vérifiez vos données'));
+        }
+    }
     const handleLogout = () => {
         setIsAuthenticated(false);
         setUserEmail('');
@@ -87,14 +110,30 @@ export default function App() {
             console.log(message)
             // Nettoyer l'URL
             window.history.replaceState({}, document.title, FRONTEND_URL);
+
         }
+        const resetToken = urlParams.get('reset-token');
+        console.log(resetToken);
+        if (resetToken) {
+            setToken(resetToken);
+            axios.get(`${apiUrl}/token-password-checking?token=${resetToken}`)
+                .then(resp => {
+                    console.log(resp)
+                    setIsChangePassword(true);
+                })
+                .catch(err => {
+                    console.log(err)
+                    setIsInvalidChangePassword(true);
+            })
+        }
+
     }, []);
     return (
         <div className="size-full">
             {isAuthenticated ? (
                 <Dashboard userEmail={userEmail} onLogout={handleLogout} />
             ) : (
-                <AuthPage onLogin={handleLogin} onRegister={handleRegister} />
+                isChangePassword? <ChangePassword onChangePassword={handleChangePassword}/>:<AuthPage isInvalidToken={isInvalidChangePassword} onLogin={handleLogin} onRegister={handleRegister} />
             )}
         </div>
     );

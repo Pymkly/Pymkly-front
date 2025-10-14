@@ -9,9 +9,10 @@ import { Mail, Lock, User, Bot, Eye, EyeOff } from 'lucide-react';
 interface AuthPageProps {
     onLogin: (email: string, password: string) => void;
     onRegister: (email: string, password: string, name: string) => void;
+    isInvalidToken : boolean;
 }
 
-export function AuthPage({ onLogin, onRegister }: AuthPageProps) {
+export function AuthPage({ onLogin, onRegister, isInvalidToken }: AuthPageProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
@@ -103,7 +104,7 @@ export function AuthPage({ onLogin, onRegister }: AuthPageProps) {
                                             </Button>
                                         </div>
                                     </div>
-
+                                    {(isInvalidToken?<p className={"text-red-500"}>Token invalide pour changer de mot de passe</p> : <></> )}
                                     <Button type="submit" className="w-full">
                                         Se connecter
                                     </Button>
@@ -172,7 +173,7 @@ export function AuthPage({ onLogin, onRegister }: AuthPageProps) {
                                             </Button>
                                         </div>
                                     </div>
-
+                                    {(isInvalidToken?<p className={"text-red-500"}>Token invalide pour changer de mot de passe</p> : <></> )}
                                     <Button type="submit" className="w-full">
                                         Créer un compte
                                     </Button>
