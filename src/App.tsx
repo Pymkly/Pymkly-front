@@ -62,7 +62,33 @@ export default function App() {
             // Gérer le consentement Google si proposé
             if (next_step) {
                 // if (window.confirm("Voulez-vous lier votre Google Calendar maintenant ?")) {
-                    window.location.href = `${apiUrl}${next_step}`;
+                //     window.location.href = `${apiUrl}${next_step}`;
+                if (window.confirm("Voulez-vous lier votre Google Calendar maintenant ?")) {
+                    const width = 500;
+                    const height = 600;
+                    const left = (window.screen.width - width) / 2;
+                    const top = (window.screen.height - height) / 2;
+                    const popup = window.open(
+                        `${apiUrl}${next_step}`,
+                        'GoogleAuth',
+                        `width=${width},height=${height},top=${top},left=${left},resizable=yes`
+                    );
+
+                    // Vérifie si la popup est bloquée
+                    if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+                        alert('Veuillez autoriser les popups pour cette action.');
+                        return;
+                    }
+
+                    // Gestion du callback (à implémenter dans un useEffect ou listener)
+                    const checkPopup = setInterval(() => {
+                        if (popup.closed) {
+                            clearInterval(checkPopup);
+                            // Rafraîchir ou vérifier le statut (ex: appel API)
+                            console.log('Popup fermée, vérifiez la connexion');
+                        }
+                    }, 500);
+                }
                 // }
             }
         } catch (error) {
