@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from './ui/sheet';
 import { VisuallyHidden } from './ui/visually-hidden';
-import { Bot, LogOut, Settings, Menu, Moon, Sun, History, Plus, BookOpen, ArrowLeft } from 'lucide-react';
+import { LogOut, Settings, Menu, Moon, Sun, History, Plus, BookOpen, ArrowLeft } from 'lucide-react';
 import { ConversationSidebar, type Conversation } from './ConversationSidebar';
 import { MainChatInterface, type ChatMessage } from './MainChatInterface';
 import axios from 'axios';
@@ -361,6 +361,11 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
 
     const userName = userEmail.split('@')[0];
 
+    // Tous les useEffect doivent être avant les retours conditionnels
+    useEffect(() => {
+        loadConversation();
+    }, []);
+
     // Afficher la page appropriée
     if (currentPage === 'history') {
         return <HistoryPage onBack={() => setCurrentPage('chat')} />;
@@ -400,10 +405,6 @@ export function Dashboard({ userEmail, onLogout }: DashboardProps) {
             />
         );
     }
-
-    useEffect(() => {
-        loadConversation();
-    }, []);
 
     return (
         <div className="h-screen flex flex-col">

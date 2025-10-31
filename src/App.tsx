@@ -80,12 +80,62 @@ export default function App() {
                         return;
                     }
 
-                    // Gestion du callback (à implémenter dans un useEffect ou listener)
-                    const checkPopup = setInterval(() => {
+                    // Variable pour stocker l'interval de vérification
+                    let checkPopup: ReturnType<typeof setInterval> | null = null;
+                    
+                    // Écouter les messages de la popup
+                    const handleMessage = (event: MessageEvent) => {
+                        // Vérifier l'origine pour la sécurité
+                        const allowedOrigin = FRONTEND_URL.startsWith('http') 
+                            ? new URL(FRONTEND_URL).origin 
+                            : window.location.origin;
+                        if (event.origin !== allowedOrigin) {
+                            return;
+                        }
+                        
+                        if (event.data?.type === 'oauth_success' || event.data?.type === 'close_popup') {
+                            if (checkPopup) {
+                                clearInterval(checkPopup);
+                            }
+                            window.removeEventListener('message', handleMessage);
+                            
+                            if (event.data.token) {
+                                localStorage.setItem('token', event.data.token);
+                            }
+                            
+                            // Fermer la popup depuis le parent (car window.close() ne fonctionne pas après redirection)
+                            if (popup && !popup.closed) {
+                                try {
+                                    popup.close();
+                                } catch (e) {
+                                    console.error('Erreur lors de la fermeture de la popup:', e);
+                                }
+                            }
+                            
+                            // Afficher le message du backend ou un message par défaut
+                            const successMessage = event.data.message || 'Auth Google réussie';
+                            console.log('OAuth réussi:', successMessage);
+                            
+                            // Afficher une notification de succès
+                            if (event.data?.type === 'oauth_success') {
+                                alert(successMessage || 'Google Calendar lié avec succès !');
+                            }
+                            
+                            // Optionnel : rafraîchir la page ou mettre à jour l'état
+                            // window.location.reload();
+                        }
+                    };
+                    
+                    window.addEventListener('message', handleMessage);
+                    
+                    // Vérifier périodiquement si la popup est fermée
+                    checkPopup = setInterval(() => {
                         if (popup.closed) {
-                            clearInterval(checkPopup);
-                            // Rafraîchir ou vérifier le statut (ex: appel API)
-                            console.log('Popup fermée, vérifiez la connexion');
+                            if (checkPopup) {
+                                clearInterval(checkPopup);
+                            }
+                            window.removeEventListener('message', handleMessage);
+                            console.log('Popup fermée');
                         }
                     }, 500);
                 }
@@ -126,6 +176,51 @@ export default function App() {
         const urlParams = new URLSearchParams(window.location.search);
         const newToken = urlParams.get('token');
         const message = urlParams.get('message');
+        const oauthSuccess = urlParams.get('oauth_success');
+        // get action parameter
+        const action = urlParams.get('action');
+        // Vérifier si c'est une authentification Google réussie (soit via oauth_success, soit via message)
+        const isGoogleAuthSuccess = oauthSuccess || 
+            (message && (message.includes('Google') || message.includes('google') || message.includes('Auth Google')));
+        
+        // Si on est dans une popup OAuth et qu'on a reçu un token avec un message de succès Google
+        if (newToken && isGoogleAuthSuccess && window.opener) {
+            // Envoyer un message au parent que l'auth Google est réussie
+            // Le parent fermera la popup car window.close() ne fonctionne pas après redirection
+            try {
+                const targetOrigin = FRONTEND_URL.startsWith('http') 
+                    ? new URL(FRONTEND_URL).origin 
+                    : window.location.origin;
+                window.opener.postMessage({ 
+                    type: 'oauth_success', 
+                    token: newToken,
+                    message: message || 'Auth Google réussie',
+                    closePopup: true // Indiquer au parent de fermer la popup
+                }, targetOrigin);
+            } catch (e) {
+                console.error('Erreur lors de l\'envoi du message au parent:', e);
+            }
+            
+            // Ne pas continuer le traitement normal si c'est dans une popup
+            return;
+        }
+        
+        // Si action == "close", informer le parent de fermer la popup
+        if (action === "close" && window.opener) {
+            try {
+                const targetOrigin = FRONTEND_URL.startsWith('http') 
+                    ? new URL(FRONTEND_URL).origin 
+                    : window.location.origin;
+                window.opener.postMessage({ 
+                    type: 'close_popup'
+                }, targetOrigin);
+            } catch (e) {
+                console.error('Erreur lors de l\'envoi du message au parent:', e);
+            }
+            return;
+        }
+        
+        // Traitement normal si on a un token (pas dans une popup)
         if (newToken) {
             localStorage.setItem('token', newToken);
             let user_email = localStorage.getItem("user_email");
@@ -133,10 +228,15 @@ export default function App() {
                 setUserEmail(user_email);
             }
             setIsAuthenticated(true);
-            console.log(message)
+            console.log(message || 'Token reçu');
+            
+            // Si c'est un succès Google en mode normal (pas popup), afficher le message
+            if (isGoogleAuthSuccess) {
+                console.log('Auth Google réussie:', message);
+            }
+            
             // Nettoyer l'URL
             window.history.replaceState({}, document.title, FRONTEND_URL);
-
         }
         const resetToken = urlParams.get('reset-token');
         console.log(resetToken);
