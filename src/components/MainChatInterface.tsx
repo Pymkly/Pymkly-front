@@ -303,6 +303,7 @@ export function MainChatInterface({
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                            className="flex-1 text-sm md:text-base p-2 rounded-md border border-gray-300"
                         />
                         <Button onClick={handleSend} size="icon" disabled={!input.trim()}>
                             <Send className="w-4 h-4" />
