@@ -4,11 +4,9 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Mail, Lock, User, Moon, Sun, EyeOff, Eye } from 'lucide-react';
+import { Mail, Lock, User, Bot, Moon, Sun, EyeOff, Eye } from 'lucide-react';
 import axios from "axios";
 import {config} from "../config/config.ts";
-import iconDark from '../assets/icone dark.png';
-import iconLight from '../assets/icone light.png';
 
 interface AuthPageProps {
     onLogin: (email: string, password: string) => void;
@@ -87,11 +85,11 @@ export function AuthPage({ onLogin, onRegister, isInvalidToken }: AuthPageProps)
 			<div className="w-full max-w-md mx-auto">
 				<div className="text-center mb-6 md:mb-8">
 					<div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-primary rounded-full mb-4">
-						<img src={isDarkMode ? iconDark : iconLight} alt="TaskMaster AI" className="object-contain" />
+						<Bot className="w-8 h-8 md:w-10 md:h-10 text-primary-foreground" />
 					</div>
-					<h1 className="text-3xl md:text-4xl mb-2 font-geo">Tsisy</h1>
+					<h1 className="text-3xl md:text-4xl mb-2 font-geo">TaskMaster AI</h1>
 					<p className="text-muted-foreground text-sm md:text-base px-2">
-                    Où la débrouille trime, Tsisy.com simplifie !
+						Votre assistant IA pour la gestion de tâches, calendrier et emails
 					</p>
 					<p className="text-primary text-xs md:text-sm mt-2 px-2">
 						Voyagez sans soucis sur vos activités 🌿

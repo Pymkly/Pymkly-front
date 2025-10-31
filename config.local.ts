@@ -1,4 +1,4 @@
 export const configLocal = {
-    apiUrl: "http://localhost:8000",
+    apiUrl: "http://localhost:8080",
     FRONTEND_URL : "http://localhost:5173",
 }
