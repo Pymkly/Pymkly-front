@@ -4,6 +4,7 @@ import { Dashboard } from './components/Dashboard';
 import axios from 'axios';
 import {config} from "./config/config.ts";
 import {ChangePassword} from "./components/ChangePassword.tsx";
+import { StreamChat } from './components/Streamchat.tsx';
 
 export default function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -257,7 +258,10 @@ export default function App() {
     return (
         <div className="size-full">
             {isAuthenticated ? (
+                <>
                 <Dashboard userEmail={userEmail} onLogout={handleLogout} />
+                <StreamChat />
+                </>
             ) : (
                 isChangePassword? <ChangePassword onChangePassword={handleChangePassword}/>:<AuthPage isInvalidToken={isInvalidChangePassword} onLogin={handleLogin} onRegister={handleRegister} />
             )}
